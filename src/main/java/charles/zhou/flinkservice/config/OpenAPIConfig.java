@@ -6,13 +6,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class OpenAPIConfig {
+public class OpenAPIConfig {    
     @Bean
     OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .info(new Info()
-                        .title("Flink服务提供者 API 文档")
-                        .version("1.0")
-                        .description("这是一个 Spring Boot Flink项目的 API 文档"));
+               .info(new Info()
+                       .title("Flink Service API")
+                       .description("Flink 作业相关接口文档")
+                       .version("1.0.0"));
     }
 }

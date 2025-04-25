@@ -1,6 +1,7 @@
 package charles.zhou.flinkservice.service;
 
 import charles.zhou.flinkservice.entity.User;
+import charles.zhou.flinkservice.mapper.UserMapper;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.state.ValueState;
@@ -15,6 +16,7 @@ import org.apache.flink.util.Collector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,7 +24,11 @@ import java.util.List;
 public class FlinkService {
 
     @Autowired
-    private UserService userService;
+    private UserMapper userMapper;
+
+    private List<String> groupedResults = new ArrayList<>();
+    private List<String> statefulResults = new ArrayList<>();
+    private List<String> filteredResults = new ArrayList<>();
 
     public void startFlinkJob() throws Exception {
         // 创建执行环境
@@ -71,13 +77,14 @@ public class FlinkService {
         DataStream<Tuple2<String, Integer>> statefulStream = userStream
                .keyBy(tuple -> tuple.f0)
                .process(new KeyedProcessFunction<String, Tuple2<String, String>, Tuple2<String, Integer>>() {
+
 				private static final long serialVersionUID = 234591330271143183L;
 					private transient ValueState<Integer> countState;
 
-                    @SuppressWarnings("deprecation")
-					@Override
+                    @Override
                     public void open(Configuration parameters) throws Exception {
-                        ValueStateDescriptor<Integer> descriptor =
+                        @SuppressWarnings("deprecation")
+						ValueStateDescriptor<Integer> descriptor =
                                 new ValueStateDescriptor<>("count", Integer.class, 0);
                         countState = getRuntimeContext().getState(descriptor);
                     }
@@ -111,20 +118,59 @@ public class FlinkService {
                 return user;
             }
         }).addSink(new SinkFunction<User>() {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
             public void invoke(User value, Context context) throws Exception {
-				userService.saveOrUpdate(value);
+                userMapper.insert(value);
             }
         });
 
-        // 打印结果
-        groupedStream.print("Grouped Result");
-        statefulStream.print("Stateful Result");
-        filteredStream.print("Filtered Result");
+        // 收集结果
+        groupedStream.addSink(new SinkFunction<Tuple2<String, Integer>>() {
+
+			private static final long serialVersionUID = -1832407491462353178L;
+
+			@Override
+            public void invoke(Tuple2<String, Integer> value, Context context) throws Exception {
+                groupedResults.add(value.toString());
+            }
+        });
+
+        statefulStream.addSink(new SinkFunction<Tuple2<String, Integer>>() {
+
+			private static final long serialVersionUID = 524193266392348655L;
+
+			@Override
+            public void invoke(Tuple2<String, Integer> value, Context context) throws Exception {
+                statefulResults.add(value.toString());
+            }
+        });
+
+        filteredStream.addSink(new SinkFunction<Tuple2<String, String>>() {
+
+			private static final long serialVersionUID = 3917308039224083058L;
+
+			@Override
+            public void invoke(Tuple2<String, String> value, Context context) throws Exception {
+                filteredResults.add(value.toString());
+            }
+        });
 
         // 执行任务
         env.execute("Flink Features Demo");
     }
-}    
+
+    public List<String> getGroupedResults() {
+        return groupedResults;
+    }
+
+    public List<String> getStatefulResults() {
+        return statefulResults;
+    }
+
+    public List<String> getFilteredResults() {
+        return filteredResults;
+    }
+}
