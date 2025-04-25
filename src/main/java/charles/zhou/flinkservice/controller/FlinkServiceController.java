@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/flink")
@@ -32,34 +32,23 @@ public class FlinkServiceController {
 		return user;
 	}
 
-	@Autowired
-	private FlinkService flinkService;
+    @Autowired
+    private FlinkService flinkService;
 
-	@GetMapping("/startJob")
-	@Operation(summary = "启动 Flink 作业")
-	public String startFlinkJob() {
-		try {
-			// 为避免阻塞主线程，使用 CompletableFuture 异步执行
-			CompletableFuture.runAsync(() -> {
-				try {
-					flinkService.startFlinkJob();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			});
-			return "Flink job started successfully.";
-		} catch (Exception e) {
-			return "Failed to start Flink job: " + e.getMessage();
-		}
-	}
-
-	@GetMapping("/getResults")
-	@Operation(summary = "获取 Flink 作业结果")
-	public Map<String, List<String>> getResults() {
-		Map<String, List<String>> results = new HashMap<>();
-		results.put("Grouped Result", flinkService.getGroupedResults());
-		results.put("Stateful Result", flinkService.getStatefulResults());
-		results.put("Filtered Result", flinkService.getFilteredResults());
-		return results;
-	}
+    @GetMapping("/startJob")
+    public String startFlinkJob() {
+        try {
+            // 为避免阻塞主线程，使用 CompletableFuture 异步执行
+            CompletableFuture.runAsync(() -> {
+                try {
+                    flinkService.startFlinkJob();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+            return "Flink job started successfully.";
+        } catch (Exception e) {
+            return "Failed to start Flink job: " + e.getMessage();
+        }
+    }
 }
