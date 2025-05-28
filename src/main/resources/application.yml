@@ -2,6 +2,8 @@ server:
   port: ${APP_PORT:8083}
 
 spring:
+  profiles:
+    active: default
   application:
     name: flink-service
   mvc:
@@ -33,6 +35,9 @@ spring:
     hibernate:
       ddl-auto: update # 开发环境使用，生产环境建议改为 none
     show-sql: true
+  h2:
+    console:
+      enabled: false        	 
   sql:
     init:
       mode: always # 开发环境使用，生产环境建议改为 never
@@ -59,7 +64,7 @@ management:
       base-path: /actuator
       exposure:
         include: info, health
-
+        exclude: health
 info:
   app:
     name: "@project.name@"
