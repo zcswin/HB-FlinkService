@@ -1,20 +1,22 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb #;DB_CLOSE_DELAY=-1
-    username: sa
-    password:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1 # jdbc:h2:file:./data/testdb;AUTO_SERVER=TRUE
     driver-class-name: org.h2.Driver
-#  jpa:
-#    database-platform: org.hibernate.dialect.H2Dialect
-#    hibernate:
-#      ddl-auto: update
-#    show-sql: true
+    username: root
+    password: 123456      
+  jpa:
+    # database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
   h2:
     console:
-      enabled: true     
+      enabled: false     
   sql:
     init:
-      data-locations: classpath:data/h2.sql
+      data-locations: classpath:data/mysql.sql
+      mode: always
   
 eureka:
   client:

@@ -6,4 +6,4 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- 插入示例数据
-INSERT INTO users (id, name, email) VALUES (1, 'John Doe', 'john.doe@example.com');
+INSERT INTO users (id, name, email) VALUES (1, 'John Doe', 'john.doe@example.com') ON DUPLICATE KEY UPDATE id = id;;
